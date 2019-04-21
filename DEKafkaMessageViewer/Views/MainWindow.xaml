@@ -1,0 +1,189 @@
+﻿<Controls:MetroWindow x:Class="DEKafkaMessageViewer.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+		xmlns:prism="http://prismlibrary.com/"
+        prism:ViewModelLocator.AutoWireViewModel="True"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        ShowTitleBar="True" ShowIconOnTitleBar="True"
+        Icon="viewericon.ico"
+        Title="{Binding Title}" Height="850" Width="1000">
+    <DockPanel>
+        <Grid DockPanel.Dock="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <GroupBox Grid.Row="0" >
+                <GroupBox.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Kafka Bootstrapper Settings:" />
+                    </StackPanel>
+                </GroupBox.Header>
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25*" />
+                        <RowDefinition Height="25*" />
+                        <RowDefinition Height="25*" />
+                        <RowDefinition Height="25*" />
+                        <RowDefinition Height="25*" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="15*" />
+                        <ColumnDefinition Width="35*" />
+                        <ColumnDefinition Width="15*"/>
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Content="Zookeeper Hosts:" Margin="10 10" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" />
+                    <TextBox Name="txtZookeeper" Text="{Binding ZookeeperHostServer}" Grid.Row="0" Grid.Column="1" Margin="0 10" MinWidth="150" 
+                             Controls:TextBoxHelper.Watermark="e.g: zkserver1:2181,zkserver2:2181" 
+                             Controls:TextBoxHelper.ClearTextButton="True" />
+                    <Button Name="btnKfk" Content="Retrieve Kafka" Grid.Row="0" Grid.Column="2" Margin="10 10 0 10" Style="{StaticResource AccentedSquareButtonStyle}">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <prism:InvokeCommandAction Command="{Binding RetrieveZookeeperBrokerCommand}"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Button>
+                    
+                    <Label Content="Kafka Bootstrapper Servers:" Margin="10 10" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" />
+                    <TextBox Name="txtKfkBroker" Text="{Binding KafkaHostServer}" Grid.Row="1" Grid.Column="1" Margin="0 10" MinWidth="150" 
+                             Controls:TextBoxHelper.Watermark="e.g: localhost:9092,remoteserver1:9092,remoteserver2:9092" 
+                             Controls:TextBoxHelper.ClearTextButton="True" />
+                    
+                    <Label Content="Kafka Configs:" Margin="10 10" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" />
+                    <TextBox Name="txtKfkConfig" Text="{Binding KafkaConfigs }" Grid.Row="2" Grid.Column="1" Margin="0 10" MinWidth="150" 
+                             Controls:TextBoxHelper.Watermark="e.g: ack:1" 
+                             Controls:TextBoxHelper.ClearTextButton="True"  
+                             HorizontalScrollBarVisibility="Auto" 
+                             VerticalScrollBarVisibility="Auto" />
+                    
+                    <Label Content="API Classes Location:" Margin="10 10" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right" />
+                    <TextBox MinWidth="150" Margin="0 10" Text="{Binding ApiClassesFilesPath}" ToolTip="{Binding ApiClassesFilesPath}" Grid.Row="3" Grid.Column="1" 
+                             Controls:TextBoxHelper.Watermark="e.g: C:\DataExchange\Generated Class\C#" 
+                             Controls:TextBoxHelper.ClearTextButton="True" />
+                    <StackPanel Orientation="Horizontal" Margin="0" Grid.Row="3" Grid.Column="2">
+                        <Button Margin="10 10 0 10" MinWidth="100" Content="Browse...">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="Click">
+                                    <prism:InvokeCommandAction Command="{Binding BrowseButtonCommand}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </Button>
+                        <Button Margin="10 10 0 10" MinWidth="100" Style="{StaticResource AccentedSquareButtonStyle}" Content="Verify">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="Click">
+                                    <prism:InvokeCommandAction Command="{Binding VerifyAPIClassesCommand}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </Button>
+                    </StackPanel>
+                    
+                    <Label Content="Kafka Topics:" Margin="10 10" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right" />
+                    <ComboBox ItemsSource="{Binding TopicItems}" Grid.Row="4" Grid.Column="1" MinWidth="150" Height="25" HorizontalAlignment="Left" Margin="0 10">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="SelectionChanged">
+                                <prism:InvokeCommandAction Command="{Binding TopicSelectedCommand}" TriggerParameterPath="AddedItems" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </ComboBox>
+                    <StackPanel Orientation="Horizontal" Grid.Row="5" Grid.Column="1" HorizontalAlignment="Left">
+                        <Button Content="Start" Margin="0 10 10 0" MinWidth="120" Command="{ Binding StartConsumeCommand }" />
+                        <Button Content="Stop" Margin="0 10 10 0" MinWidth="120" Command="{Binding StopConsumeCommand }"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+        </Grid>
+        <StatusBar DockPanel.Dock="Bottom">
+            <TextBlock Text="{Binding CurrentStatus}" />
+        </StatusBar>
+        <TabControl>
+            <TabItem Header="XML">
+                <DockPanel>
+                    <GroupBox DockPanel.Dock="Left" Margin="5">
+                        <GroupBox.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Messages:" />
+                                <Label Content="{Binding MessagesCount}" />
+                            </StackPanel>
+                        </GroupBox.Header>
+                        <ListView MinHeight="200" MinWidth="200" Margin="0,5,0,0"
+											  ItemsSource="{Binding ReceivedMessages}"
+											  SelectedItem="{Binding SelectedMessage}"
+											  ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                    </GroupBox>
+                    <DockPanel Margin="10,0,0,0">
+                        <GroupBox Margin="5" DockPanel.Dock="Top">
+                            <GroupBox.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton Margin="10,0,0,0" GroupName="msgFormat" Content="Formatted" IsChecked="{Binding IsFormatted}" />
+                                    <RadioButton Margin="10,0,0,0" GroupName="msgFormat"  Content="Raw" />
+                                </StackPanel>
+                            </GroupBox.Header>
+                            <TextBox Padding="3" IsReadOnly="True" BorderThickness="0" BorderBrush="Gray" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsFormatted}" Value="false">
+                                                <Setter Property="Text" Value="{Binding SelectedMessage.RawXml}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsFormatted}" Value="true">
+                                                <Setter Property="Text" Value="{Binding SelectedMessage.FormattedXml}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </GroupBox>
+                    </DockPanel>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Data">
+                <DockPanel>
+                    <GroupBox DockPanel.Dock="Left" Margin="5">
+                        <GroupBox.Header>
+                            <StackPanel Orientation="Horizontal" Margin="0">
+                                <Label Content="Schemas:" Margin="0" />
+                                <Label Content="{Binding TablesCount}" />
+                            </StackPanel>
+                        </GroupBox.Header>
+
+                        <ListView MinWidth="200" ItemsSource="{Binding Tables}" SelectedItem="{Binding SelectedTable}" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListView.ItemTemplate>
+                                <DataTemplate >
+                                    <TextBlock Text="{Binding Header}" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </GroupBox>
+                    <DockPanel>
+                        <GroupBox Margin="10 5"  DockPanel.Dock="Top">
+                            <GroupBox.Header>
+                                <StackPanel Margin="5,0" Orientation="Horizontal" VerticalAlignment="Top">
+                                    <Label Content="Search command:" />
+                                    <TextBox MinWidth="300" MinHeight="25" VerticalAlignment="Center" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                                             Controls:TextBoxHelper.Watermark="e.g: select * from table1 where col1>1" 
+                                             Controls:TextBoxHelper.ClearTextButton="True" />
+                                    <Button Content="Execute" Margin="5,0" Command="{Binding ExecuteSearchCommand}"/>
+                                </StackPanel>
+                            </GroupBox.Header>
+
+                            <DataGrid AutoGenerateColumns="False" Style="{StaticResource AzureDataGrid}"
+										  CanUserReorderColumns="False"
+										  CanUserAddRows="False"
+										  IsReadOnly="True"
+										  ItemsSource="{Binding DataGrid.Rows}">
+                            </DataGrid>
+                        </GroupBox>
+                    </DockPanel>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+
+        <!--<ContentControl prism:RegionManager.RegionName="ContentRegion" />-->
+    </DockPanel>
+</Controls:MetroWindow>
