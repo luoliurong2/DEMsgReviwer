@@ -48,12 +48,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Messages\DEKafkaMessage.cs" />
+    <Compile Include="Messages\KafkaBatchUnit.cs" />
+    <Compile Include="Messages\KafkaMessageHeader.cs" />
+    <Compile Include="Messages\KafkaMessageUnit.cs" />
+    <Compile Include="Messages\KafkaMessenger.cs" />
+    <Compile Include="Messages\KafkaTrackedMsgDetail.cs" />
+    <Compile Include="Messages\KafkeMessageConstructor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Libs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Samples\KfkMsgSample.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

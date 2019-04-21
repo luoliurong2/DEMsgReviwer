@@ -346,6 +346,7 @@ namespace DEKafkaMessageViewer.ViewModels
 			{
 				CurrentStatus = $"Zookeeper hosts is empty!";
 				MessageBox.Show("Please specify at least one zookeeper server!");
+				return;
 			}
 			if (!ValidateZookeeperSettings())
 			{
