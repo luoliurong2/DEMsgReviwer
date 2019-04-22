@@ -117,7 +117,7 @@ namespace DEKafkaMessageViewer.ViewModels
 			{
 				if (_selectedTable != null)
 				{
-					//_selectedTable.Rows.CollectionChanged -= OnSelectedTableRowsCollectionChanged;
+					_selectedTable.Rows.CollectionChanged -= OnSelectedTableRowsCollectionChanged;
 				}
 				SetProperty(ref _selectedTable, value);
 
@@ -125,19 +125,19 @@ namespace DEKafkaMessageViewer.ViewModels
 				DataGrid.Columns.Clear();
 				if (value != null)
 				{
-					//foreach (var column in value.Columns)
-					//{
-					//	DataGrid.Columns.Add(column);
-					//}
+					foreach (var column in value.Columns)
+					{
+						DataGrid.Columns.Add(column);
+					}
 
-					//foreach (var row in value.Rows)
-					//{
-					//	DataGrid.Rows.Add(row);
-					//}
+					foreach (var row in value.Rows)
+					{
+						DataGrid.Rows.Add(row);
+					}
 				}
 				if (_selectedTable != null)
 				{
-					//_selectedTable.Rows.CollectionChanged += OnSelectedTableRowsCollectionChanged;
+					_selectedTable.Rows.CollectionChanged += OnSelectedTableRowsCollectionChanged;
 				}
 			}
 		}
@@ -194,7 +194,7 @@ namespace DEKafkaMessageViewer.ViewModels
 			BrowseButtonCommand = new DelegateCommand(BrowseAPIClassesPath);
 			VerifyAPIClassesCommand = new DelegateCommand(VeifyApiClassesAssembly);
 
-			StartConsumeCommand = new DelegateCommand(StartConsumeMessages, CanStartConsume);
+			StartConsumeCommand = new DelegateCommand(StartConsumeMessages);
 			StopConsumeCommand = new DelegateCommand(StopConsumeMessages, CanStopConsume);
 			ExecuteSearchCommand = new DelegateCommand(ExecuteSearchMessages);
 		}
@@ -235,7 +235,9 @@ namespace DEKafkaMessageViewer.ViewModels
 
 			try
 			{
+				CurrentStatus = $"Verifying the API classes, just a moment...";
 				DEKafkaMessageParser.InitializeEntityClassesTypes(ApiClassesFilesPath);
+				CurrentStatus = $"Verification on the API classes has completed, all are good!";
 			}
 			catch (Exception ex)
 			{
@@ -244,25 +246,30 @@ namespace DEKafkaMessageViewer.ViewModels
 			}
 		}
 
-		private bool CanStartConsume()
-		{
-			return	string.IsNullOrEmpty(ZookeeperHostServer) && 
-					!string.IsNullOrEmpty(KafkaHostServer) && 
-					TopicItems.Any() && 
-					!string.IsNullOrEmpty(SelectedTopic);
-		}
-
 		private async void StartConsumeMessages() {
+			var canStart = !string.IsNullOrEmpty(ZookeeperHostServer) &&
+					!string.IsNullOrEmpty(KafkaHostServer) &&
+					TopicItems.Any() &&
+					!string.IsNullOrEmpty(SelectedTopic);
+
+			if (!canStart)
+			{
+				MessageBox.Show("Can't start consumer, please check zookeeper host, kafka host and selected topic!");
+				return;
+			}
+
 			consumer = new KafkaConsumer(KafkaHostServer, SelectedTopic, KafkaConfigs);
 			consumer.ConsumeError += HandleConsumeError;
 			await Task.Factory.StartNew(() =>
 			{
 				try
 				{
+					CurrentStatus = $"Start consuming messages from kafka server '{KafkaHostServer}'";
 					consumer.Subscribe(OnMessageConsumed);
 				}
-				catch
+				catch(Exception ex)
 				{
+					CurrentStatus = $"Error occurs when cosuming messages. {ex.Message}";
 					Stop();
 				}
 			});
@@ -338,7 +345,10 @@ namespace DEKafkaMessageViewer.ViewModels
 			return true;
 		}
 
-		private void StopConsumeMessages() { }
+		private void StopConsumeMessages() {
+			CurrentStatus = $"Stop consuming messages from kafka server '{KafkaHostServer}'";
+			Stop();
+		}
 
 		private async void RetrieveZookeeperBrokerTopics()
 		{

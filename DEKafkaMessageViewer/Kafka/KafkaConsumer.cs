@@ -13,7 +13,7 @@ namespace DEKafkaMessageViewer.Kafka
 		private string bootstrapServers;
 		private string topic;
 		private string otherConfigs;
-		private string consumerGroupName = $"DataExchange-Consumer-Group-{Guid.NewGuid().ToString()}";
+		private string consumerGroupName = $"DataExchange-Consumer-Group-DEMsgReviewer";
 
 		public event EventHandler<Error> ConsumeError;
 

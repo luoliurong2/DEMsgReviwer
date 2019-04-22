@@ -57,10 +57,16 @@
     <Compile Include="Messages\KafkeMessageConstructor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Samples\CRTSB.cs" />
+    <Compile Include="Samples\CRTSG.cs" />
+    <Compile Include="Samples\DEKafkaMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="Samples\rocschema.xsd">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Libs\" />

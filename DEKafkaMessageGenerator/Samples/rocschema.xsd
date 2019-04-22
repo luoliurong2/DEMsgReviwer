@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="rocschema"
+    targetNamespace="http://tempuri.org/rocschema.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.unisys.com/rocschema.xsd"
+    xmlns:mstns="http://www.unisys.com/rocschema.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+    <xs:element name="CRTSB">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="IDX" type="xs:integer" nillable="false"/>
+                <xs:element name="R_SMINT" type="xs:short" nillable="true"/>
+                <xs:element name="R_INT" type="xs:int" nillable="true" />
+                <xs:element name="R_CHAR" type="xs:string" nillable="true" />
+                <xs:element name="R_NCHAR" type="xs:string" nillable="true" />
+                <xs:element name="R_UCS2" type="xs:string" nillable="true" />
+                <xs:element name="R_NUMERIC" type="xs:decimal" nillable="true" />
+                <xs:element name="R_DCMAL" type="xs:decimal" nillable="true" />
+                <xs:element name="R_DOUBLE" type="xs:double" nillable="true" />
+                <xs:element name="R_REAL" type="xs:float" nillable="true" />
+                <xs:element name="R_FLOAT" type="xs:float" nillable="true" />
+                <xs:element name="R_DATE" type="xs:date" nillable="true" />
+                <xs:element name="R_TIME" type="xs:time" nillable="true" />
+                <xs:element name="R_TMSP" type="xs:string" nillable="true" />
+            </xs:sequence>
+        </xs:complexType>
+        <xs:unique name="CRTSBUK">
+            <xs:selector xpath="CRTSB"/>
+            <xs:field xpath="IDX" />
+        </xs:unique>
+        <xs:key name="CRTSBPK" id="CRTSBKey">
+            <xs:selector xpath="CRTSB"/>
+            <xs:field xpath="IDX" />
+        </xs:key>
+    </xs:element>
+    <xs:element name="CRTSG">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="IDX" type="xs:integer" nillable="false"/>
+                <xs:element name="R_SMINT" type="xs:short" nillable="true"/>
+                <xs:element name="R_INT" type="xs:int" nillable="true" />
+                <xs:element name="R_CHAR" type="xs:string" nillable="true" />
+                <xs:element name="R_NCHAR" type="xs:string" nillable="true" />
+                <xs:element name="R_UCS2" type="xs:string" nillable="true" />
+                <xs:element name="R_NUMERIC" type="xs:decimal" nillable="true" />
+                <xs:element name="R_DCMAL" type="xs:decimal" nillable="true" />
+                <xs:element name="R_DOUBLE" type="xs:double" nillable="true" />
+                <xs:element name="R_REAL" type="xs:float" nillable="true" />
+                <xs:element name="R_FLOAT" type="xs:float" nillable="true" />
+                <xs:element name="R_DATE" type="xs:date" nillable="true" />
+                <xs:element name="R_TIME" type="xs:time" nillable="true" />
+                <xs:element name="R_TMSP" type="xs:string" nillable="true" />
+            </xs:sequence>
+        </xs:complexType>
+        <xs:unique name="CRTSGUK">
+            <xs:selector xpath="CRTSG"/>
+            <xs:field xpath="IDX" />
+        </xs:unique>
+        <xs:key name="CRTSGPK" id="CRTSGKey">
+            <xs:selector xpath="CRTSG"/>
+            <xs:field xpath="IDX" />
+        </xs:key>
+    </xs:element>
+</xs:schema>
