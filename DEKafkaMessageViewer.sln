@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DEKafkaMessageViewer", "DEK
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DEKafkaMessageGenerator", "DEKafkaMessageGenerator\DEKafkaMessageGenerator.csproj", "{0A24C1E0-8976-4FF2-AD85-6B0662B042C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DEKafkaMessageViewer.Common", "DEKafkaMessageViewer.Common\DEKafkaMessageViewer.Common.csproj", "{93229D79-1962-4DB8-A628-79F721A0A0DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{0A24C1E0-8976-4FF2-AD85-6B0662B042C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A24C1E0-8976-4FF2-AD85-6B0662B042C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A24C1E0-8976-4FF2-AD85-6B0662B042C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93229D79-1962-4DB8-A628-79F721A0A0DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93229D79-1962-4DB8-A628-79F721A0A0DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93229D79-1962-4DB8-A628-79F721A0A0DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93229D79-1962-4DB8-A628-79F721A0A0DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

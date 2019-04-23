@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using DEKafkaMessageViewer.Common;
 
 namespace DEKafkaMessageGenerator
 {
@@ -12,17 +14,30 @@ namespace DEKafkaMessageGenerator
 		static KafkaTargetConfiguration kafkaConfig = new KafkaTargetConfiguration();
 		static void Main(string[] args)
 		{
-			Console.WriteLine("How many messages do you want to generate? Input a number and then press <ENTER> to continue...");
-			var messageCount = 0;
-			if (int.TryParse(Console.ReadLine(), out messageCount))
+			var filePath = @"C:\Projects\DataExchange\DEKafkaMessageViewer\DEKafkaMessageGenerator\Samples\KfkMsgSample.xml";
+			var message = File.ReadAllText(filePath);
+
+			KafkaProducer producer = new KafkaProducer();
+			KafkaConsumer consumer = new KafkaConsumer();
+			try
 			{
-				return;
+				//producer.Produce("192.168.0.151:9092", "dataexchange", message);
+
+				consumer.Consume("192.168.0.151:9092", "dataexchange", "kfkMsgReviewer", (result)=> {
+					Console.WriteLine(result.Topic);
+					Console.WriteLine(result.Broker);
+					Console.WriteLine(result.Partition);
+					Console.WriteLine(result.Message);
+				});
+				Console.ReadLine();
+				consumer.IsCancelled = true;
+				Console.ReadLine();
+				Console.WriteLine("Done!");
 			}
-
-			InitializeKafkaConfig();
-
-			KafkaMessageConstructor construnctor = new KafkaMessageConstructor();
-			var kfkMsg = construnctor.Construct(1);
+			catch(Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+			}
 		}
 
 		private static bool SendMessage(string message, string messageKey)
