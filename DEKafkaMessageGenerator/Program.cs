@@ -14,25 +14,29 @@ namespace DEKafkaMessageGenerator
 		static KafkaTargetConfiguration kafkaConfig = new KafkaTargetConfiguration();
 		static void Main(string[] args)
 		{
-			var filePath = @"C:\Projects\DataExchange\DEKafkaMessageViewer\DEKafkaMessageGenerator\Samples\KfkMsgSample.xml";
+			var filePath = @"C:\Users\leono\Source\Repos\DEMsgReviwer\DEKafkaMessageGenerator\Samples\KfkMsgSample.xml";
 			var message = File.ReadAllText(filePath);
 
 			KafkaProducer producer = new KafkaProducer();
 			KafkaConsumer consumer = new KafkaConsumer();
 			try
 			{
-				//producer.Produce("192.168.0.151:9092", "dataexchange", message);
+                //producer.Produce("10.62.153.123:9092", "de3557", message);
 
-				consumer.Consume("192.168.0.151:9092", "dataexchange", "kfkMsgReviewer", (result)=> {
-					Console.WriteLine(result.Topic);
-					Console.WriteLine(result.Broker);
-					Console.WriteLine(result.Partition);
-					Console.WriteLine(result.Message);
-				});
-				Console.ReadLine();
-				consumer.IsCancelled = true;
-				Console.ReadLine();
-				Console.WriteLine("Done!");
+                Guid groupId = Guid.NewGuid();
+                consumer.Consume("10.62.153.123:9092", "de3557", groupId.ToString(), (result) =>
+                {
+                    Console.WriteLine(result.Topic);
+                    Console.WriteLine(result.Broker);
+                    Console.WriteLine(result.Partition);
+                    Console.WriteLine(result.Message);
+                });
+                Console.ReadLine();
+                consumer.IsCancelled = true;
+                Console.ReadLine();
+
+
+                Console.WriteLine("Done!");
 			}
 			catch(Exception ex)
 			{
