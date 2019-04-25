@@ -5,7 +5,7 @@ namespace DEKafkaMessageViewer.Common
 {
 	public interface IKafkaConsumer
 	{
-		void Consume(string broker, string topic, string groupId, Action<ConsumerResult> action = null);
+		void Consume(string broker, string topic, string groupId, CancellationTokenSource cancelSource, Action<ConsumerResult> action = null);
 	}
 
 	public interface IKafkaProducer

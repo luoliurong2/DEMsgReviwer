@@ -17,16 +17,13 @@ namespace DEKafkaMessageViewer.Common
 	{
 		public KafkaConsumer()
 		{
-			IsCancelled = false;
 		}
-
-		public bool IsCancelled { get; set; } = false;
 
         /// <summary>
         /// offsets are manually committed.
         /// no extra thread is created for the Poll loop.
         /// </summary>
-		public void Consume(string broker, string topic, string groupId, Action<ConsumerResult> action = null)
+		public void Consume(string broker, string topic, string groupId, CancellationTokenSource cancelSource, Action<ConsumerResult> callbackAction = null)
 		{
 			if (string.IsNullOrEmpty(broker) || string.IsNullOrWhiteSpace(broker) || broker.Length <= 0)
 			{
@@ -95,31 +92,24 @@ namespace DEKafkaMessageViewer.Common
 
                 Console.WriteLine($"Started consumer, Ctrl-C to stop consuming");
 
-                var cancelled = false;
-                Console.CancelKeyPress += (_, e) => {
-                    e.Cancel = true; // prevent the process from terminating.
-                    cancelled = true;
-                };
-
-                while (!cancelled)
+                while (!cancelSource.IsCancellationRequested)
                 {
                     if (!consumer.Consume(out Message<Ignore, string> msg, TimeSpan.FromMilliseconds(100)))
                     {
-                        if (msg != null)
-                        {
-                            ConsumerResult msgResult = new ConsumerResult();
-                            msgResult.Broker = broker;
-                            msgResult.Topic = msg.Topic;
-                            msgResult.Partition = msg.Partition;
-                            msgResult.Offset = msg.Offset;
-                            msgResult.Message = msg.Value;
-
-                            action?.Invoke(msgResult);
-                        }
                         continue;
                     }
 
-                    Console.WriteLine($"Topic: {msg.Topic} Partition: {msg.Partition} Offset: {msg.Offset} {msg.Value}");
+                    if (msg != null)
+                    {
+                        ConsumerResult msgResult = new ConsumerResult();
+                        msgResult.Broker = broker;
+                        msgResult.Topic = msg.Topic;
+                        msgResult.Partition = msg.Partition;
+                        msgResult.Offset = msg.Offset;
+                        msgResult.Message = msg.Value;
+
+                        callbackAction?.Invoke(msgResult);
+                    }
 
                     if (msg.Offset % 5 == 0)
                     {

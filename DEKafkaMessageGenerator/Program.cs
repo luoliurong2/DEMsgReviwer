@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using DEKafkaMessageViewer.Common;
+using System.Threading;
 
 namespace DEKafkaMessageGenerator
 {
@@ -23,16 +24,20 @@ namespace DEKafkaMessageGenerator
 			{
                 //producer.Produce("10.62.153.123:9092", "de3557", message);
 
+                CancellationTokenSource cancelSource = new CancellationTokenSource();
+                Console.CancelKeyPress += (_, e) => {
+                    e.Cancel = true; // prevent the process from terminating.
+                    cancelSource.Cancel();
+                };
                 Guid groupId = Guid.NewGuid();
-                consumer.Consume("10.62.153.123:9092", "de3557", groupId.ToString(), (result) =>
+                consumer.Consume("10.62.153.123:9092", "de3557", groupId.ToString(), cancelSource, (result) =>
                 {
                     Console.WriteLine(result.Topic);
                     Console.WriteLine(result.Broker);
                     Console.WriteLine(result.Partition);
                     Console.WriteLine(result.Message);
                 });
-                Console.ReadLine();
-                consumer.IsCancelled = true;
+
                 Console.ReadLine();
 
 
