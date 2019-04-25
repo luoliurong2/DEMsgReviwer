@@ -91,9 +91,6 @@ namespace DEKafkaMessageViewer.Common
                 consumer.OnStatistics += (_, json)
                     => Console.WriteLine($"Statistics: {json}");
 
-                var startPartitions = GetTopicPartitions(broker, topic);
-                consumer.Assign(startPartitions);
-
                 consumer.Subscribe(topic);
 
                 Console.WriteLine($"Started consumer, Ctrl-C to stop consuming");
@@ -131,30 +128,6 @@ namespace DEKafkaMessageViewer.Common
                     }
                 }
             }
-        }
-
-        private List<TopicPartitionOffset> GetTopicPartitions(string bootstrapServers, string topic)
-        {
-            Dictionary<string, object> producerConfig = new Dictionary<string, object>()
-            {
-                { "bootstrap.servers", bootstrapServers}
-            };
-            var serializer = new StringSerializer(Encoding.UTF8);
-            using (var producer = new Producer<Null, string>(producerConfig, null, serializer))
-            {
-                var metaData = producer.GetMetadata(false, topic);
-                var topicMetadata = metaData.Topics.FirstOrDefault(t => t.Topic == topic);
-                if (topicMetadata != null)
-                {
-                    List<TopicPartitionOffset> result = new List<TopicPartitionOffset>();
-                    foreach (var partition in topicMetadata.Partitions)
-                    {
-                        result.Add(new TopicPartitionOffset(new TopicPartition(topic, partition.PartitionId), new Offset(0)));
-                    }
-                    return result;
-                }
-            }
-            throw new Exception("Error: Read Kafka meta data failed.");
         }
     }
 }
