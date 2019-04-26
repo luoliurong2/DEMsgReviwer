@@ -13,6 +13,7 @@ using System.Windows.Threading;
 using DEKafkaMessageViewer.Kafka;
 using Confluent.Kafka;
 using System.IO;
+using System.Configuration;
 
 namespace DEKafkaMessageViewer.ViewModels
 {
@@ -173,7 +174,7 @@ namespace DEKafkaMessageViewer.ViewModels
 		public ObservableCollection<DEKafkaMessageViewModel> ReceivedMessages { get; private set; }
 		public ObservableCollection<TableViewModel> Tables { get; private set; }
 
-		public DelegateCommand<object[]> TopicSelectedCommand { get; private set; }
+        public DelegateCommand<object[]> TopicSelectedCommand { get; private set; }
 		public DelegateCommand RetrieveZookeeperBrokerCommand { get; private set; }
 		public DelegateCommand BrowseButtonCommand { get; private set; }
 		public DelegateCommand VerifyAPIClassesCommand { get; private set; }
@@ -189,7 +190,7 @@ namespace DEKafkaMessageViewer.ViewModels
 			ReceivedMessages = new ObservableCollection<DEKafkaMessageViewModel>();
 			Tables = new ObservableCollection<TableViewModel>();
 
-			TopicSelectedCommand = new DelegateCommand<object[]>(OnItemSelected);
+            TopicSelectedCommand = new DelegateCommand<object[]>(OnItemSelected);
 			RetrieveZookeeperBrokerCommand = new DelegateCommand(RetrieveZookeeperBrokerTopics);
 			BrowseButtonCommand = new DelegateCommand(BrowseAPIClassesPath);
 			VerifyAPIClassesCommand = new DelegateCommand(VeifyApiClassesAssembly);
@@ -197,9 +198,11 @@ namespace DEKafkaMessageViewer.ViewModels
 			StartConsumeCommand = new DelegateCommand(StartConsumeMessages);
 			StopConsumeCommand = new DelegateCommand(StopConsumeMessages, CanStopConsume);
 			ExecuteSearchCommand = new DelegateCommand(ExecuteSearchMessages);
+
+            InitializeWindowElementsValue();
 		}
 
-		private void OnItemSelected(object[] selectedItems)
+        private void OnItemSelected(object[] selectedItems)
 		{
 			if (selectedItems != null && selectedItems.Any())
 			{
@@ -450,5 +453,30 @@ namespace DEKafkaMessageViewer.ViewModels
 
 			return true;
 		}
-	}
+
+        private void InitializeWindowElementsValue()
+        {
+            var appSettings = ConfigurationManager.AppSettings;
+            var zookeeperHost = appSettings.Get("ZookeeperBootstraper");
+            if (!string.IsNullOrEmpty(zookeeperHost))
+            {
+                ZookeeperHostServer = zookeeperHost;
+            }
+            var kafkaHost = appSettings.Get("KafkaBootstraper");
+            if (!string.IsNullOrEmpty(kafkaHost))
+            {
+                KafkaHostServer = kafkaHost;
+            }
+            var otherConfigs = appSettings.Get("KafkaConfigs");
+            if (!string.IsNullOrEmpty(otherConfigs))
+            {
+                KafkaConfigs = otherConfigs;
+            }
+            var apiClassLocation = appSettings.Get("APIClassesLocation");
+            if (!string.IsNullOrEmpty(apiClassLocation))
+            {
+                ApiClassesFilesPath = apiClassLocation;
+            }
+        }
+    }
 }

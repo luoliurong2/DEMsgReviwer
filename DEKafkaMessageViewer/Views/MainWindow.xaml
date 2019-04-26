@@ -7,9 +7,28 @@
 		xmlns:prism="http://prismlibrary.com/"
         prism:ViewModelLocator.AutoWireViewModel="True"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         ShowTitleBar="True" ShowIconOnTitleBar="True"
         Icon="viewericon.ico"
-        Title="{Binding Title}" Height="750" Width="900">
+        Title="{Binding Title}" Height="750" Width="900" RightWindowCommandsOverlayBehavior="Flyouts">
+    <Controls:MetroWindow.RightWindowCommands>
+        <Controls:WindowCommands>
+            <ToggleButton IsChecked="{Binding ElementName=settingsFlyout, Path=IsOpen}" Cursor="Hand">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Width="20" Height="20" Kind="Settings" />
+                </StackPanel>
+            </ToggleButton>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.RightWindowCommands>
+
+    <Controls:MetroWindow.Flyouts>
+        <Controls:FlyoutsControl>
+            <Controls:Flyout x:Name="settingsFlyout" Header="Settings" Position="Right" Width="300" Theme="Dark">
+                <TextBlock Text="Flyout window content" />
+            </Controls:Flyout>
+        </Controls:FlyoutsControl>
+    </Controls:MetroWindow.Flyouts>
+    
     <DockPanel>
         <Grid DockPanel.Dock="Top">
             <Grid.RowDefinitions>

@@ -1,7 +1,18 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="uri:settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
-  <Settings />
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="DEKafkaMessageViewer.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ZookeeperBootstraper" Type="System.String" Scope="User">
+      <Value Profile="(Default)">10.62.153.123:2181</Value>
+    </Setting>
+    <Setting Name="KafkaBootstraper" Type="System.String" Scope="User">
+      <Value Profile="(Default)">10.62.153.123:9092</Value>
+    </Setting>
+    <Setting Name="KafkaConfigs" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="APIClassesLocation" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+  </Settings>
 </SettingsFile>
