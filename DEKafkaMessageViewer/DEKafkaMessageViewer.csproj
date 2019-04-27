@@ -119,7 +119,6 @@
     <Compile Include="Extensions\EventHandlerExtensions.cs" />
     <Compile Include="Kafka\DEKafkaMessageContract.cs" />
     <Compile Include="Kafka\DEKafkaMessageParser.cs" />
-    <Compile Include="Kafka\KafkaConsumer.cs" />
     <Compile Include="Kafka\KafkaMessageXMLFormatter.cs" />
     <Compile Include="ViewModels\CellValue.cs" />
     <Compile Include="ViewModels\DataGridViewModel.cs" />

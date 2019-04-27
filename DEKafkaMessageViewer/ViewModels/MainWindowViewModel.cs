@@ -1,26 +1,22 @@
-﻿using Prism.Commands;
+﻿using DEKafkaMessageViewer.Kafka;
+using Prism.Commands;
 using Prism.Mvvm;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using Rabbit.Zookeeper;
-using System;
 using Rabbit.Zookeeper.Implementation;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using System;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Windows.Threading;
-using DEKafkaMessageViewer.Kafka;
-using Confluent.Kafka;
-using System.IO;
 using System.Configuration;
-using System.Threading;
-using System.Text;
+using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace DEKafkaMessageViewer.ViewModels
 {
-	public class MainWindowViewModel : BindableBase
+    public class MainWindowViewModel : BindableBase
 	{
 		#region properties
 
@@ -143,8 +139,6 @@ namespace DEKafkaMessageViewer.ViewModels
             set { SetProperty(ref _isFlyoutOpen, value); RaisePropertyChanged("IsFlyoutOpen"); }
         }
 
-        #endregion
-
 		private DEKafkaMessageViewModel _selectedMessage;
 		public DEKafkaMessageViewModel SelectedMessage
 		{
@@ -187,27 +181,6 @@ namespace DEKafkaMessageViewer.ViewModels
 			}
 		}
 
-		private void OnSelectedTableRowsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-		{
-            if (e.Action == NotifyCollectionChangedAction.Add)
-            {
-                foreach (TableRowViewModel row in e.NewItems)
-                {
-                    DataGrid.Rows.Add(row);
-                }
-            }
-            else if (e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
-            {
-                foreach (TableRowViewModel row in e.OldItems)
-                {
-                    if (DataGrid.Rows.Contains(row))
-                    {
-                        DataGrid.Rows.Remove(row);
-                    }
-                }
-            }
-        }
-
 		public DataGridViewModel DataGrid { get; private set; }
 
         private ObservableCollection<string> _topicItems = new ObservableCollection<string>();
@@ -228,6 +201,9 @@ namespace DEKafkaMessageViewer.ViewModels
             set { SetProperty(ref _tables, value); RaisePropertyChanged("Tables"); }
         }
 
+        #endregion
+
+        #region commands
 
         public DelegateCommand<object[]> TopicSelectedCommand { get; private set; }
         public DelegateCommand RetrieveZookeeperBrokerCommand { get; private set; }
@@ -238,11 +214,13 @@ namespace DEKafkaMessageViewer.ViewModels
 		public DelegateCommand ExecuteSearchCommand { get; private set; }
         public DelegateCommand SaveSettingsCommand { get; private set; }
 
+        #endregion
+
         private Dispatcher CurrentDispatcher;
+
         public MainWindowViewModel()
 		{
             CurrentDispatcher = Dispatcher.CurrentDispatcher;
-
 			_apiClassesPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
             TopicSelectedCommand = new DelegateCommand<object[]>(OnItemSelected);
@@ -256,12 +234,33 @@ namespace DEKafkaMessageViewer.ViewModels
             SaveSettingsCommand = new DelegateCommand(SaveSettingsConfig);
 
             DataGrid = new DataGridViewModel();
-
             ReceivedMessages.CollectionChanged += ReceivedMessages_Changed;
             Tables.CollectionChanged += Tables_Changed;
-
             InitializeWindowElementsValue();
 		}
+
+        #region private methods
+
+        private void OnSelectedTableRowsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                foreach (TableRowViewModel row in e.NewItems)
+                {
+                    DataGrid.Rows.Add(row);
+                }
+            }
+            else if (e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
+            {
+                foreach (TableRowViewModel row in e.OldItems)
+                {
+                    if (DataGrid.Rows.Contains(row))
+                    {
+                        DataGrid.Rows.Remove(row);
+                    }
+                }
+            }
+        }
 
         private void ReceivedMessages_Changed(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -608,5 +607,7 @@ namespace DEKafkaMessageViewer.ViewModels
                 return result.Replace("-", "");
             }
         }
+
+        #endregion
     }
 }
