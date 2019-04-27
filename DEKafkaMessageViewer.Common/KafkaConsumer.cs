@@ -109,15 +109,100 @@ namespace DEKafkaMessageViewer.Common
                         msgResult.Message = msg.Value;
 
                         callbackAction?.Invoke(msgResult);
-                    }
 
-                    if (msg.Offset % 5 == 0)
-                    {
-                        var committedOffsets = consumer.CommitAsync(msg).Result;
-                        Console.WriteLine($"Committed offset: {committedOffsets}");
+                        if (msg.Offset % 5 == 0)
+                        {
+                            var committedOffsets = consumer.CommitAsync(msg).Result;
+                            Console.WriteLine($"Committed offset: {committedOffsets}");
+                        }
                     }
                 }
             }
         }
+
+        public void ConsumeAsync(string broker, string topic, string groupId, CancellationTokenSource cancelSource, Action<ConsumerResult> action = null)
+        {
+            if (string.IsNullOrEmpty(broker) || string.IsNullOrWhiteSpace(broker) || broker.Length <= 0)
+            {
+                throw new ArgumentNullException("broker argument for consumer can't be null.");
+            }
+            if (string.IsNullOrWhiteSpace(topic) || string.IsNullOrEmpty(topic) || topic.Length <= 0)
+            {
+                throw new ArgumentNullException("topic argument for consumer can't be null.");
+            }
+            if (string.IsNullOrWhiteSpace(groupId) || string.IsNullOrEmpty(groupId) || groupId.Length <= 0)
+            {
+                throw new ArgumentNullException("message argument for consumer can't be null.");
+            }
+
+            ThreadPool.QueueUserWorkItem(KafkaAutoCommittedOffsets, new ConsumerSetting() { Broker = broker, Topic = topic, GroupID = groupId, CancelSource = cancelSource, Action = action });
+        }
+
+        private void KafkaAutoCommittedOffsets(object state)
+        {
+            ConsumerSetting setting = state as ConsumerSetting;
+
+            var config = new Dictionary<string, object>
+                {
+                    { "bootstrap.servers", setting.Broker },
+                    { "group.id", setting.GroupID },
+                    { "enable.auto.commit", true },  // this is the default
+                    { "auto.commit.interval.ms", 5000 },
+                    { "statistics.interval.ms", 60000 },
+                    { "session.timeout.ms", 6000 },
+                    { "auto.offset.reset", "smallest" }
+                };
+
+            using (var consumer = new Consumer<Ignore, string>(config, null, new StringDeserializer(Encoding.UTF8)))
+            {
+                if (setting.Action != null)
+                {
+                    consumer.OnMessage += (_, message) =>
+                    {
+                        ConsumerResult messageResult = new ConsumerResult();
+                        messageResult.Broker = setting.Broker;
+                        messageResult.Topic = message.Topic;
+                        messageResult.Partition = message.Partition;
+                        messageResult.Offset = message.Offset.Value;
+                        messageResult.Message = message.Value;
+
+                        //执行外界自定义的方法
+                        setting.Action(messageResult);
+                    };
+                }
+
+                consumer.Subscribe(setting.Topic);
+
+                while (!setting.CancelSource.IsCancellationRequested)
+                {
+                    consumer.Poll(TimeSpan.FromMilliseconds(100));
+                }
+            }
+        }
+    }
+
+    public sealed class ConsumerSetting
+    {
+        /// <summary>
+        /// Kafka消息服务器的地址
+        /// </summary>
+        public string Broker { get; set; }
+
+        /// <summary>
+        /// Kafka消息所属的主题
+        /// </summary>
+        public string Topic { get; set; }
+
+        /// <summary>
+        /// Kafka消息消费者分组主键
+        /// </summary>
+        public string GroupID { get; set; }
+
+        public CancellationTokenSource CancelSource { get; set; }
+
+        /// <summary>
+        /// 消费消息后可以执行的方法
+        /// </summary>
+        public Action<ConsumerResult> Action { get; set; }
     }
 }

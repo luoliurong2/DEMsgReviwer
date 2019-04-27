@@ -14,6 +14,9 @@ using DEKafkaMessageViewer.Kafka;
 using Confluent.Kafka;
 using System.IO;
 using System.Configuration;
+using System.Threading;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace DEKafkaMessageViewer.ViewModels
 {
@@ -25,42 +28,46 @@ namespace DEKafkaMessageViewer.ViewModels
 		public string Title
 		{
 			get { return _winTitle; }
-			set { SetProperty(ref _winTitle, value); }
+			set { SetProperty(ref _winTitle, value); RaisePropertyChanged("Title");}
 		}
 
 		private string _zookeeperHostServer = string.Empty;
 		public string ZookeeperHostServer
 		{
 			get { return _zookeeperHostServer; }
-			set { SetProperty(ref _zookeeperHostServer, value); }
+			set { SetProperty(ref _zookeeperHostServer, value); RaisePropertyChanged("ZookeeperHostServer"); }
 		}
 
 		private string _kafkaBrokerServer = string.Empty;
 		public string KafkaHostServer
 		{
 			get { return _kafkaBrokerServer; }
-			set { SetProperty(ref _kafkaBrokerServer, value); }
+			set { SetProperty(ref _kafkaBrokerServer, value); RaisePropertyChanged("KafkaHostServer"); }
 		}
 
 		private string _kafkaConfigs = string.Empty;
 		public string KafkaConfigs
 		{
 			get { return _kafkaConfigs; }
-			set { SetProperty(ref _kafkaConfigs, value); }
+			set { SetProperty(ref _kafkaConfigs, value); RaisePropertyChanged("KafkaConfigs"); }
 		}
 
 		private string _apiClassesPath = string.Empty;
 		public string ApiClassesFilesPath
 		{
 			get { return _apiClassesPath; }
-			set { SetProperty(ref _apiClassesPath, value); }
+			set { SetProperty(ref _apiClassesPath, value); RaisePropertyChanged("ApiClassesFilesPath"); }
 		}
 
 		private string _selectedTopic;
 		public string SelectedTopic
 		{
 			get { return _selectedTopic; }
-			private set { SetProperty(ref _selectedTopic, value); }
+			private set {
+                SetProperty(ref _selectedTopic, value);
+                RaisePropertyChanged("ApiClassesFilesPath");
+                RaisePropertyChanged("EnableStart");
+            }
 		}
 
 		public int TablesCount
@@ -69,6 +76,7 @@ namespace DEKafkaMessageViewer.ViewModels
 			{
 				return Tables.Count;
 			}
+            set { RaisePropertyChanged("TablesCount"); }
 		}
 
 		public int MessagesCount
@@ -77,13 +85,14 @@ namespace DEKafkaMessageViewer.ViewModels
 			{
 				return ReceivedMessages.Count;
 			}
+            set { RaisePropertyChanged("MessagesCount"); }
 		}
 
 		private string _currentStatus;
 		public string CurrentStatus
 		{
 			get { return _currentStatus; }
-			set { SetProperty(ref _currentStatus, value); }
+			set { SetProperty(ref _currentStatus, value); RaisePropertyChanged("CurrentStatus"); }
 		}
 
 		private bool _isFormatted;
@@ -100,14 +109,47 @@ namespace DEKafkaMessageViewer.ViewModels
 			set { SetProperty(ref _searchText, value); }
 		}
 
-		#endregion
-		private KafkaConsumer consumer = null;
+        private bool _enableStart = false;
+        public bool EnableStart
+        {
+            get {
+                return !string.IsNullOrEmpty(ZookeeperHostServer) &&
+                    !string.IsNullOrEmpty(KafkaHostServer) && 
+                    TopicItems.Any() &&
+                    !string.IsNullOrEmpty(SelectedTopic);
+            }
+            set { SetProperty(ref _enableStart, value); }
+        }
+
+
+        private bool _enableStop = false;
+        public bool EnableStop
+        {
+            get { return _enableStop; }
+            set { SetProperty(ref _enableStop, value); RaisePropertyChanged("EnableStop"); }
+        }
+
+        private bool _canSelectTopic = false;
+        public bool CanSelectTopic
+        {
+            get { return _canSelectTopic; }
+            set { SetProperty(ref _canSelectTopic, value); }
+        }
+
+        private bool _isFlyoutOpen = true;
+        public bool IsFlyoutOpen
+        {
+            get { return _isFlyoutOpen; }
+            set { SetProperty(ref _isFlyoutOpen, value); RaisePropertyChanged("IsFlyoutOpen"); }
+        }
+
+        #endregion
 
 		private DEKafkaMessageViewModel _selectedMessage;
 		public DEKafkaMessageViewModel SelectedMessage
 		{
 			get { return _selectedMessage; }
-			set { SetProperty(ref _selectedMessage, value); }
+			set { SetProperty(ref _selectedMessage, value); RaisePropertyChanged("SelectedMessage"); }
 		}
 
 		private TableViewModel _selectedTable;
@@ -140,67 +182,98 @@ namespace DEKafkaMessageViewer.ViewModels
 				{
 					_selectedTable.Rows.CollectionChanged += OnSelectedTableRowsCollectionChanged;
 				}
+
+                RaisePropertyChanged("SelectedTable");
 			}
 		}
 
 		private void OnSelectedTableRowsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-
-			Dispatcher.CurrentDispatcher.Invoke(() =>
-			{
-				if (e.Action == NotifyCollectionChangedAction.Add)
-				{
-					foreach (TableRowViewModel row in e.NewItems)
-					{
-						DataGrid.Rows.Add(row);
-					}
-				}
-				else if (e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
-				{
-					foreach (TableRowViewModel row in e.OldItems)
-					{
-						if (DataGrid.Rows.Contains(row))
-						{
-							DataGrid.Rows.Remove(row);
-						}
-					}
-				}
-			});
-		}
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                foreach (TableRowViewModel row in e.NewItems)
+                {
+                    DataGrid.Rows.Add(row);
+                }
+            }
+            else if (e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
+            {
+                foreach (TableRowViewModel row in e.OldItems)
+                {
+                    if (DataGrid.Rows.Contains(row))
+                    {
+                        DataGrid.Rows.Remove(row);
+                    }
+                }
+            }
+        }
 
 		public DataGridViewModel DataGrid { get; private set; }
 
-		public ObservableCollection<string> TopicItems { get; private set; }
-		public ObservableCollection<DEKafkaMessageViewModel> ReceivedMessages { get; private set; }
-		public ObservableCollection<TableViewModel> Tables { get; private set; }
+        private ObservableCollection<string> _topicItems = new ObservableCollection<string>();
+        public ObservableCollection<string> TopicItems {
+            get { return _topicItems; }
+            set { SetProperty(ref _topicItems, value); }
+        }
+
+        private ObservableCollection<DEKafkaMessageViewModel> _receivedMessages = new ObservableCollection<DEKafkaMessageViewModel>();
+        public ObservableCollection<DEKafkaMessageViewModel> ReceivedMessages {
+            get { return _receivedMessages; }
+            set { SetProperty(ref _receivedMessages, value); RaisePropertyChanged("ReceivedMessages"); }
+        }
+
+        private ObservableCollection<TableViewModel> _tables = new ObservableCollection<TableViewModel>();
+        public ObservableCollection<TableViewModel> Tables {
+            get { return _tables; }
+            set { SetProperty(ref _tables, value); RaisePropertyChanged("Tables"); }
+        }
+
 
         public DelegateCommand<object[]> TopicSelectedCommand { get; private set; }
-		public DelegateCommand RetrieveZookeeperBrokerCommand { get; private set; }
+        public DelegateCommand RetrieveZookeeperBrokerCommand { get; private set; }
 		public DelegateCommand BrowseButtonCommand { get; private set; }
 		public DelegateCommand VerifyAPIClassesCommand { get; private set; }
 		public DelegateCommand StartConsumeCommand { get; private set; }
 		public DelegateCommand StopConsumeCommand { get; private set; }
 		public DelegateCommand ExecuteSearchCommand { get; private set; }
+        public DelegateCommand SaveSettingsCommand { get; private set; }
 
-		public MainWindowViewModel()
+        private Dispatcher CurrentDispatcher;
+        public MainWindowViewModel()
 		{
+            CurrentDispatcher = Dispatcher.CurrentDispatcher;
+
 			_apiClassesPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-			TopicItems = new ObservableCollection<string>();
-			//TopicItems.Add("==Select==");
-			ReceivedMessages = new ObservableCollection<DEKafkaMessageViewModel>();
-			Tables = new ObservableCollection<TableViewModel>();
 
             TopicSelectedCommand = new DelegateCommand<object[]>(OnItemSelected);
-			RetrieveZookeeperBrokerCommand = new DelegateCommand(RetrieveZookeeperBrokerTopics);
+            RetrieveZookeeperBrokerCommand = new DelegateCommand(RetrieveZookeeperBrokerTopics);
 			BrowseButtonCommand = new DelegateCommand(BrowseAPIClassesPath);
 			VerifyAPIClassesCommand = new DelegateCommand(VeifyApiClassesAssembly);
 
 			StartConsumeCommand = new DelegateCommand(StartConsumeMessages);
-			StopConsumeCommand = new DelegateCommand(StopConsumeMessages, CanStopConsume);
+			StopConsumeCommand = new DelegateCommand(StopConsumeMessages);
 			ExecuteSearchCommand = new DelegateCommand(ExecuteSearchMessages);
+            SaveSettingsCommand = new DelegateCommand(SaveSettingsConfig);
+
+            DataGrid = new DataGridViewModel();
+
+            ReceivedMessages.CollectionChanged += ReceivedMessages_Changed;
+            Tables.CollectionChanged += Tables_Changed;
 
             InitializeWindowElementsValue();
 		}
+
+        private void ReceivedMessages_Changed(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            RaisePropertyChanged("ReceivedMessages");
+            MessagesCount = ReceivedMessages.Count;
+        }
+
+        private void Tables_Changed(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            RaisePropertyChanged("Tables");
+            TablesCount = Tables.Count;
+        }
 
         private void OnItemSelected(object[] selectedItems)
 		{
@@ -214,7 +287,16 @@ namespace DEKafkaMessageViewer.ViewModels
 			}
 		}
 
-		private void ExecuteSearchMessages() { }
+        private void ExecuteSearchMessages() {
+            try
+            {
+                //DataGrid.Search(SearchText);
+            }
+            catch
+            {
+                MessageBox.Show("The command is not supported. Please check the format.");
+            }
+        }
 
 		private void BrowseAPIClassesPath() {
 			FolderBrowserDialog dialog = new FolderBrowserDialog();
@@ -232,7 +314,8 @@ namespace DEKafkaMessageViewer.ViewModels
 			if (string.IsNullOrEmpty(ApiClassesFilesPath))
 			{
 				CurrentStatus = $"API classes file path is empty!";
-				MessageBox.Show("Please specify the file path wher you stored the API classes!");
+                settings_valid = false;
+                MessageBox.Show("Please specify the file path wher you stored the API classes!");
 				return;
 			}
 
@@ -244,12 +327,14 @@ namespace DEKafkaMessageViewer.ViewModels
 			}
 			catch (Exception ex)
 			{
-				CurrentStatus = $"API classes initialized failed!";
+                settings_valid = false;
+                CurrentStatus = $"API classes initialized failed!";
 				MessageBox.Show(CurrentStatus + ex.Message);
 			}
 		}
 
-		private async void StartConsumeMessages() {
+        private CancellationTokenSource _cancelConsume;
+		private void StartConsumeMessages() {
 			var canStart = !string.IsNullOrEmpty(ZookeeperHostServer) &&
 					!string.IsNullOrEmpty(KafkaHostServer) &&
 					TopicItems.Any() &&
@@ -260,57 +345,38 @@ namespace DEKafkaMessageViewer.ViewModels
 				MessageBox.Show("Can't start consumer, please check zookeeper host, kafka host and selected topic!");
 				return;
 			}
+            ReceivedMessages.Clear();
+            Tables.Clear();
+            _cancelConsume = new CancellationTokenSource();
+            CurrentStatus = $"Consuming messages from topic:{SelectedTopic} ...";
+            DEKafkaMessageViewer.Common.KafkaConsumer consumer = new Common.KafkaConsumer();
+            var groupId = Guid.NewGuid().ToString();
+            consumer.ConsumeAsync(KafkaHostServer, SelectedTopic, groupId, _cancelConsume, (resultMsg) =>
+            {
+                var msgBody = resultMsg.Message;
+                EnableStop = true;
+                OnMessageConsumed(msgBody);
+            });
+        }
 
-			consumer = new KafkaConsumer(KafkaHostServer, SelectedTopic, KafkaConfigs);
-			consumer.ConsumeError += HandleConsumeError;
-			await Task.Factory.StartNew(() =>
-			{
-				try
-				{
-					CurrentStatus = $"Start consuming messages from kafka server '{KafkaHostServer}'";
-					consumer.Subscribe(OnMessageConsumed);
-				}
-				catch(Exception ex)
-				{
-					CurrentStatus = $"Error occurs when cosuming messages. {ex.Message}";
-					Stop();
-				}
-			});
-		}
-
-		private void HandleConsumeError(object sender, Error e)
+		private void OnMessageConsumed(string message)
 		{
-			CurrentStatus = $"Consumer encounters an error: {e.Reason}";
-		}
-
-		private void Stop()
-		{
-			if (consumer != null)
+			if (message.Trim().StartsWith($"<{DEKafkaMessageContract.DEKafkaMessage}>"))
 			{
-				consumer.UnSubscribe();
-				consumer = null;
-				CurrentStatus = "Consume stopped.";
-			}
-		}
-
-		private void OnMessageConsumed(object sender, Message<string, string> message)
-		{
-			if (message.Value.Trim().StartsWith($"<{DEKafkaMessageContract.DEKafkaMessage}>"))
-			{
-				var deKafkaMsg = DEKafkaMessageParser.DeSerializeDEKafkaMessage(message.Value);
-				ShowDEKafkaMessageInfo(deKafkaMsg, message.Value);
+				var deKafkaMsg = DEKafkaMessageParser.DeSerializeDEKafkaMessage(message);
+				ShowDEKafkaMessageInfo(deKafkaMsg, message);
 			}
 		}
 
 		private void ShowDEKafkaMessageInfo(object msg, string rawXml)
 		{
 			DEKafkaMessageViewModel vm = new DEKafkaMessageViewModel(rawXml, msg);
-			Dispatcher.CurrentDispatcher.Invoke(() =>
-			{
-				ReceivedMessages.Add(vm);
-			});
-			ShowChangedRecords(msg);
-		}
+            CurrentDispatcher.Invoke(() =>
+            {
+                ReceivedMessages.Add(vm);
+                ShowChangedRecords(msg);
+            });
+        }
 
 		private void ShowChangedRecords(object msg)
 		{
@@ -335,36 +401,35 @@ namespace DEKafkaMessageViewer.ViewModels
 			if (foundTable == null)
 			{
 				foundTable = new TableViewModel(classifierName, schemaName);
-				Dispatcher.CurrentDispatcher.Invoke(() =>
-				{
-					Tables.Add(foundTable);
-				});
-			}
+                Tables.Add(foundTable);
+            }
 			foundTable.UpdateTableData(msgUnit);
 		}
 
-		private bool CanStopConsume()
-		{
-			return true;
-		}
-
 		private void StopConsumeMessages() {
-			CurrentStatus = $"Stop consuming messages from kafka server '{KafkaHostServer}'";
-			Stop();
+            if (_cancelConsume != null)
+            {
+                _cancelConsume.Cancel();
+                CurrentStatus = $"Stoped consuming messages from kafka server '{KafkaHostServer}'";
+                EnableStop = false;
+            }
 		}
 
+        private bool settings_valid = true;
 		private async void RetrieveZookeeperBrokerTopics()
 		{
 			if (string.IsNullOrEmpty(ZookeeperHostServer))
 			{
 				CurrentStatus = $"Zookeeper hosts is empty!";
 				MessageBox.Show("Please specify at least one zookeeper server!");
-				return;
+                settings_valid = false;
+                return;
 			}
 			if (!ValidateZookeeperSettings())
 			{
 				CurrentStatus = $"Zookeeper hosts specified is not valid!";
-				MessageBox.Show("Zookeeper hosts specified is invalid! \r\n Please see format indicated in wartermark text!", "Zookeeper host is invalid");
+                settings_valid = false;
+                MessageBox.Show("Zookeeper hosts specified is invalid! \r\n Please see format indicated in wartermark text!", "Zookeeper host is invalid");
 				return;
 			}
 			using (IZookeeperClient client = new ZookeeperClient(new ZookeeperClientOptions(ZookeeperHostServer)
@@ -387,13 +452,15 @@ namespace DEKafkaMessageViewer.ViewModels
 					{
 						Dispatcher.CurrentDispatcher.Invoke(() => {
 							TopicItems.AddRange(childNodes);
-							CurrentStatus = $"Zookeeper topics has been fetched.";
+                            CanSelectTopic = true;
+							CurrentStatus = $"Zookeeper topics has been fetched successfully.";
 						});
 					}
 				}
 				catch (Exception ex)
 				{
-					TopicItems.Clear();
+                    settings_valid = false;
+                    TopicItems.Clear();
 					CurrentStatus = $"Error occurs when communicating with Zookeeper '{ZookeeperHostServer}'. {ex.Message}";
 				}
 				finally
@@ -476,6 +543,69 @@ namespace DEKafkaMessageViewer.ViewModels
             if (!string.IsNullOrEmpty(apiClassLocation))
             {
                 ApiClassesFilesPath = apiClassLocation;
+            }
+
+            var secretKey = appSettings.Get("SecretKey");
+            var successKey = Encrypt(encodedKey, Encoding.UTF8);
+            if (!string.IsNullOrEmpty(secretKey) && secretKey == successKey)
+            {
+                IsFlyoutOpen = false;
+                RetrieveZookeeperBrokerTopics();
+                VeifyApiClassesAssembly();
+            }
+        }
+
+        private void SaveSettingsConfig()
+        {
+            if (string.IsNullOrEmpty(ZookeeperHostServer))
+            {
+                MessageBox.Show("Zookeeper host server must not be empty.");
+                return;
+            }
+            if (string.IsNullOrEmpty(KafkaHostServer))
+            {
+                MessageBox.Show("Kafka host server must not be empty.");
+                return;
+            }
+            if (string.IsNullOrEmpty(ApiClassesFilesPath))
+            {
+                MessageBox.Show("API class path must not be empty.");
+                return;
+            }
+
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            config.AppSettings.Settings["ZookeeperBootstraper"].Value = ZookeeperHostServer;
+            config.AppSettings.Settings["KafkaBootstraper"].Value = KafkaHostServer;
+            config.AppSettings.Settings["APIClassesLocation"].Value = ApiClassesFilesPath;
+            if (!string.IsNullOrEmpty(KafkaConfigs))
+            {
+                config.AppSettings.Settings["KafkaConfigs"].Value = KafkaConfigs;
+            }
+            if (settings_valid)
+            {
+                config.AppSettings.Settings["SecretKey"].Value = Encrypt(encodedKey, Encoding.UTF8);
+            }
+
+            try
+            {
+                config.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("appSettings");
+                CurrentStatus = "Settings have been saved successfully!";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Errors occur when saving settings! Error: {ex.Message}");
+            }
+        }
+        private readonly string encodedKey = "success";
+        private string Encrypt(string text, Encoding encoding)
+        {
+            using (MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider())
+            {
+                var textbytes = encoding.GetBytes(text);
+                var computedHash = md5.ComputeHash(textbytes);
+                var result = BitConverter.ToString(computedHash);
+                return result.Replace("-", "");
             }
         }
     }

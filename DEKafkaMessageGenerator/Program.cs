@@ -30,7 +30,7 @@ namespace DEKafkaMessageGenerator
                     cancelSource.Cancel();
                 };
                 Guid groupId = Guid.NewGuid();
-                consumer.Consume("10.62.153.123:9092", "de3557", groupId.ToString(), cancelSource, (result) =>
+                consumer.ConsumeAsync("10.62.153.123:9092", "de3557", groupId.ToString(), cancelSource, (result) =>
                 {
                     Console.WriteLine(result.Topic);
                     Console.WriteLine(result.Broker);

@@ -1,5 +1,6 @@
 ﻿using DEKafkaMessageViewer.Common;
 using DEKafkaMessageViewer.Kafka;
+using Prism.Mvvm;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,95 +8,106 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Windows.Threading;
 
 namespace DEKafkaMessageViewer.ViewModels
 {
-	public class TableViewModel : NotificationObject
-	{
+	public class TableViewModel : BindableBase
+    {
 		private Dictionary<string, string> columnNameToTypesDict;
+        private string _header;
+        private string _schemaName;
+        private string _classifierName;
+        private SynchronizedObservableCollection<TableRowViewModel> _rows = new SynchronizedObservableCollection<TableRowViewModel>();
+        private ObservableCollection<TableColumnViewModel> _columns = new ObservableCollection<TableColumnViewModel>();
 
-		public TableViewModel(string classifierName, string schemaName)
+        public TableViewModel(string classifierName, string schemaName)
 		{
-			ClassifierName = classifierName;
-			SchemaName = schemaName;
-			Rows = new SynchronizedObservableCollection<TableRowViewModel>();
+            _classifierName = classifierName;
+            _schemaName = schemaName;
 			var propNames = DEKafkaMessageParser.GetPropertiesOfEntityClass(classifierName);
 			columnNameToTypesDict = DEKafkaMessageParser.GetEntityPropertiesTypes(classifierName);
-			Columns = new ObservableCollection<TableColumnViewModel>();
 			foreach (var propName in propNames)
 			{
 				var typeString = columnNameToTypesDict[propName];
 				if (typeString == "list`1")
 				{
 					continue;
-					//throw new NotSupportedException("Occurs is not supported!");
 				}
 				TableColumnViewModel column = new TableColumnViewModel(propName, columnNameToTypesDict[propName]);
 				Columns.Add(column);
 			}
-			Rows.CollectionChanged += Rows_CollectionChanged;
+			_rows.CollectionChanged += Rows_CollectionChanged;
 		}
 
 		private void Rows_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			Notify(() => Header);
-		}
+			Header = String.Format(@"{0}.{1} ({2})", SchemaName, ClassifierName, Rows.Count.ToString());
+        }
 
-		public string ClassifierName { get; private set; }
+		public string ClassifierName {
+            get { return _classifierName; }
+            set { SetProperty(ref _classifierName, value); RaisePropertyChanged("ClassifierName"); }
+        }
 
-		public string SchemaName { get; private set; }
+		public string SchemaName
+        {
+            get { return _schemaName; }
+            set { SetProperty(ref _schemaName, value); RaisePropertyChanged("ShemaName"); }
+        }
 
 		public string Header
 		{
 			get
 			{
-				return String.Format(@"{0}.{1} ({2})", SchemaName, ClassifierName, Rows.Count.ToString());
+                _header = String.Format(@"{0}.{1} ({2})", SchemaName, ClassifierName, Rows.Count.ToString());
+                return _header;
 			}
+            set { SetProperty(ref _header, value); }
 		}
 
+		public SynchronizedObservableCollection<TableRowViewModel> Rows {
+            get { return _rows; }
+            set { SetProperty(ref _rows, value); RaisePropertyChanged("Rows"); }
+        }
 
+		public ObservableCollection<TableColumnViewModel> Columns {
+            get { return _columns; }
+            set { SetProperty(ref _columns, value); RaisePropertyChanged("Columns"); }
+        }
 
-		public SynchronizedObservableCollection<TableRowViewModel> Rows { get; private set; }
-
-		public ObservableCollection<TableColumnViewModel> Columns { get; private set; }
-
-		public string Operation { get; private set; }
+        private string _operation;
+		public string Operation {
+            get { return _operation; }
+            set { SetProperty(ref _operation, value); }
+        }
 
 		private void AppendRow(object msgUnit)
 		{
 			var newRow = CreateRow(msgUnit);
-			UIInvoke(() =>
-			{
-				Rows.Add(newRow);
-			});
-		}
+            Rows.Add(newRow);
+        }
 
 		private void AppendRow(object msgUnit, Dictionary<string, CellValue> beforeImage, Dictionary<string, CellValue> afterImage)
 		{
 			var keys = ReadKeys(msgUnit);
 			var newRow = new TableRowViewModel(ClassifierName, Columns, afterImage ?? beforeImage, keys, columnNameToTypesDict);
-			UIInvoke(() =>
-			{
-				Rows.Add(newRow);
-			});
-		}
+            Rows.Add(newRow);
+        }
 
 		private void DeleteRow(Dictionary<string, CellValue> beforeImage, Dictionary<string, CellValue> afterImage)
 		{
 			var rowToBeDeleted = Rows.FirstOrDefault(r => r.Match(beforeImage ?? afterImage));
 			if (rowToBeDeleted != null)
 			{
-				UIInvoke(() =>
-				{
-					Rows.Remove(rowToBeDeleted);
-				});
-			}
+                Rows.Remove(rowToBeDeleted);
+            }
 		}
 
 		private void ClearRows()
 		{
-			UIInvoke(() => Rows.Clear());
-		}
+            Rows.Clear();
+        }
 
 		private string ReadTargetOperation(object msgUnit)
 		{

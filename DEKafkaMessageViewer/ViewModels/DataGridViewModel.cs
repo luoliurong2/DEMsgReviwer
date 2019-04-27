@@ -1,21 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using Prism.Mvvm;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Data;
 
 namespace DEKafkaMessageViewer.ViewModels
 {
-	public class DataGridViewModel
+	public class DataGridViewModel:BindableBase
 	{
-		public DataGridViewModel()
+        private ObservableCollection<TableColumnViewModel> _columns = new ObservableCollection<TableColumnViewModel>();
+        private ObservableCollection<TableRowViewModel> _rows = new ObservableCollection<TableRowViewModel>();
+
+        public DataGridViewModel()
 		{
-			Columns = new ObservableCollection<TableColumnViewModel>();
-			Rows = new ObservableCollection<TableRowViewModel>();
 		}
 
-		public ObservableCollection<TableColumnViewModel> Columns { get; set; }
+		public ObservableCollection<TableColumnViewModel> Columns {
+            get { return _columns; }
+            set { SetProperty(ref _columns, value); RaisePropertyChanged("Columns"); }
+        }
 
-		public ObservableCollection<TableRowViewModel> Rows { get; private set; }
+		public ObservableCollection<TableRowViewModel> Rows {
+            get { return _rows; }
+            set { SetProperty(ref _rows, value); RaisePropertyChanged("Rows"); }
+        }
 
 		internal void ShowAllRows()
 		{

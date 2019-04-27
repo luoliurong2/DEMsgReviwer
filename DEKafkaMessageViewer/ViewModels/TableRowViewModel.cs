@@ -1,42 +1,48 @@
 ﻿using DEKafkaMessageViewer.Common;
+using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace DEKafkaMessageViewer.ViewModels
 {
-	public class TableRowViewModel
+	public class TableRowViewModel:BindableBase
 	{
 		private string tableName;
 		private Dictionary<string, string> columnNameToTypesDict;
+        private Dictionary<string, RowCellViewModel> _columnsData = new Dictionary<string, RowCellViewModel>();
+        private List<string> _keyColNames = new List<string>();
 
-		public TableRowViewModel(string tableName, 
+        public TableRowViewModel(string tableName, 
 								 IEnumerable<TableColumnViewModel> columns,
 								 Dictionary<string, CellValue> columnsData,
 								 List<string> keyColumns,
 								 Dictionary<string, string> columnNameToTypesDict)
 		{
 			this.tableName = tableName;
-			ColumnsData = new Dictionary<string, RowCellViewModel>();
 			foreach (var column in columns)
 			{
 				var columnValue = columnsData.ContainsKey(column.Header) ? columnsData[column.Header].Value : string.Empty;
-				ColumnsData[column.Header] = new RowCellViewModel() { Value = columnValue };
+                _columnsData[column.Header] = new RowCellViewModel() { Value = columnValue };
 			}
-			KeyColumnsNames = keyColumns;
+            _keyColNames = keyColumns;
 			this.columnNameToTypesDict = columnNameToTypesDict;
 		}
 
-		public Dictionary<string, RowCellViewModel> ColumnsData { get; private set; }
+		public Dictionary<string, RowCellViewModel> ColumnsData {
+            get { return _columnsData; }
+            set { SetProperty(ref _columnsData, value); RaisePropertyChanged("ColumnsData"); }
+        }
 
-		internal List<string> KeyColumnsNames { get; private set; }
+		internal List<string> KeyColumnsNames {
+            get { return _keyColNames; }
+            set { SetProperty(ref _keyColNames, value); RaisePropertyChanged("KeyColumnsNames"); }
+        }
 
 		public string TableName
 		{
-			get
-			{
-				return tableName;
-			}
+            get { return tableName; }
+            set { SetProperty(ref tableName, value); RaisePropertyChanged("TableName"); }
 		}
 
 		public override int GetHashCode()

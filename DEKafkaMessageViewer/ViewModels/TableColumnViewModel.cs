@@ -1,11 +1,12 @@
 ﻿using DEKafkaMessageViewer.Common;
+using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 
 namespace DEKafkaMessageViewer.ViewModels
 {
-	public class TableColumnViewModel : NotificationObject
-	{
+	public class TableColumnViewModel : BindableBase
+    {
 		private bool isVisible = true;
 		public static readonly Dictionary<string, ColumnDataType> TypeStringToColumnTypeDict = new Dictionary<string, ColumnDataType>()
 		{
@@ -34,11 +35,11 @@ namespace DEKafkaMessageViewer.ViewModels
 
 		public TableColumnViewModel(string header, string columnType)
 		{
-			Header = header;
+            _header = header;
 			string typeString = columnType.ToLower();
 			ColumnDataType columnValueType = ColumnDataType.String;
 			TypeStringToColumnTypeDict.TryGetValue(typeString, out columnValueType);
-			ValueType = columnValueType;
+            _valueType = columnValueType;
 		}
 
 		public static bool CanCompare(ColumnDataType columnType)
@@ -46,9 +47,17 @@ namespace DEKafkaMessageViewer.ViewModels
 			return columnType != ColumnDataType.ByteArray;
 		}
 
-		public string Header { get; private set; }
+        private string _header;
+		public string Header {
+            get { return _header; }
+            set { SetProperty(ref _header, value); RaisePropertyChanged("Header"); }
+        }
 
-		public ColumnDataType ValueType { get; set; }
+        private ColumnDataType _valueType;
+		public ColumnDataType ValueType {
+            get { return _valueType; }
+            set { SetProperty(ref _valueType, value); RaisePropertyChanged("ValueType"); }
+        }
 
 		public void Hide()
 		{
@@ -58,7 +67,7 @@ namespace DEKafkaMessageViewer.ViewModels
 		public bool IsVisible
 		{
 			get { return isVisible; }
-			set { ChangeAndNotify(ref isVisible, value, () => IsVisible); }
+			set { SetProperty(ref isVisible, value); RaisePropertyChanged("IsVisible"); }
 		}
 
 		public void Show()

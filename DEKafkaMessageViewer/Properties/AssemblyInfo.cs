@@ -10,7 +10,7 @@ using System.Windows;
 [assembly: AssemblyTitle("DEKafkaMessageViewer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Unisys(China)")]
 [assembly: AssemblyProduct("DEKafkaMessageViewer")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
