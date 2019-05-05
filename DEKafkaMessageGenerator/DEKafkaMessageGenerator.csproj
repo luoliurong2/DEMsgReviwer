@@ -60,9 +60,15 @@
     <Compile Include="Messages\KafkeMessageConstructor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Samples\CRTSB.cs" />
-    <Compile Include="Samples\CRTSG.cs" />
-    <Compile Include="Samples\DEKafkaMessage.cs" />
+    <Compile Include="Samples\Sample1\CRTSB.cs" />
+    <Compile Include="Samples\Sample1\CRTSG.cs" />
+    <Compile Include="Samples\Sample1\DEKafkaMessage.cs" />
+    <Compile Include="Samples\Sample2\BIN_SIGN.cs" />
+    <Compile Include="Samples\Sample2\BIN_UNSIGN.cs" />
+    <Compile Include="Samples\Sample2\DEKafkaMessage.cs" />
+    <Compile Include="Samples\Sample2\SCL_BIN_SIGN.cs" />
+    <Compile Include="Samples\Sample2\SCL_UNSIGN.cs" />
+    <Compile Include="Samples\Sample2\SIGN_EXACT.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -75,7 +81,8 @@
     <Folder Include="Libs\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Samples\KfkMsgSample.xml" />
+    <Content Include="Samples\Sample1\KfkMsgSample.xml" />
+    <Content Include="Samples\Sample2\KfkMsgSample2.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DEKafkaMessageViewer.Common\DEKafkaMessageViewer.Common.csproj">

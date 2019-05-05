@@ -15,33 +15,35 @@ namespace DEKafkaMessageGenerator
 		static KafkaTargetConfiguration kafkaConfig = new KafkaTargetConfiguration();
 		static void Main(string[] args)
 		{
-			var filePath = @"C:\Users\leono\Source\Repos\DEMsgReviwer\DEKafkaMessageGenerator\Samples\KfkMsgSample.xml";
-			var message = File.ReadAllText(filePath);
+			//var filePath = @"C:\Users\luoliurr\Source\Repos\DEMsgReviwer\DEKafkaMessageGenerator\Samples\Sample2\KfkMsgSample2.xml";
+			//var message = File.ReadAllText(filePath);
 
-			KafkaProducer producer = new KafkaProducer();
+			//KafkaProducer producer = new KafkaProducer();
 			KafkaConsumer consumer = new KafkaConsumer();
 			try
 			{
-                //producer.Produce("10.62.153.123:9092", "de3557", message);
+				//producer.Produce("10.62.153.123:9092", "de3557", message);
 
-                CancellationTokenSource cancelSource = new CancellationTokenSource();
-                Console.CancelKeyPress += (_, e) => {
-                    e.Cancel = true; // prevent the process from terminating.
-                    cancelSource.Cancel();
-                };
-                Guid groupId = Guid.NewGuid();
-                consumer.ConsumeAsync("10.62.153.123:9092", "de3557", groupId.ToString(), cancelSource, (result) =>
-                {
-                    Console.WriteLine(result.Topic);
-                    Console.WriteLine(result.Broker);
-                    Console.WriteLine(result.Partition);
-                    Console.WriteLine(result.Message);
-                });
+				CancellationTokenSource cancelSource = new CancellationTokenSource();
+				Console.CancelKeyPress += (_, e) =>
+				{
+					e.Cancel = true; // prevent the process from terminating.
+					cancelSource.Cancel();
+				};
+				Guid groupId = Guid.NewGuid();
+				consumer.ConsumeAsync("10.62.153.123:9092", "de3557", groupId.ToString(), cancelSource, (result) =>
+				{
+					Console.WriteLine(result.Topic);
+					Console.WriteLine(result.Broker);
+					Console.WriteLine(result.Partition);
+					Console.WriteLine(result.Message);
+				});
 
-                Console.ReadLine();
-
+				Console.ReadLine();
 
                 Console.WriteLine("Done!");
+
+				Console.ReadLine();
 			}
 			catch(Exception ex)
 			{
