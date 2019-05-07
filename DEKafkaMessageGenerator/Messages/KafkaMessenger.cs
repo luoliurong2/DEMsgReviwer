@@ -123,4 +123,34 @@ namespace DEKafkaMessageGenerator.Messages
 			}
 		}
 	}
+
+	public sealed class KafkaTargetConfiguration
+	{
+		//[DataMember]
+		public string Topic { get; set; }
+
+		//[DataMember]
+		public KafkaMessageTransmissionType TransmissionType { get; set; }
+
+		//[DataMember]
+		public string PayloadFormat { get; set; }
+
+		//[DataMember]
+		public Dictionary<string, string> ProducerConfig { get; set; }
+
+		//[DataMember]
+		public string BootstrapServers { get; set; }
+
+		//[DataMember]
+		public string ClientId { get; set; }
+
+		//[DataMember]
+		public short Acks { get; set; }
+
+		//[DataMember]
+		public Dictionary<string, string> Files { get; set; }
+
+		//[DataMember]
+		public Guid TransformationID { get; set; }
+	}
 }

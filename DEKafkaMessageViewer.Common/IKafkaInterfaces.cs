@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace DEKafkaMessageViewer.Common
 {
@@ -12,6 +11,7 @@ namespace DEKafkaMessageViewer.Common
 
 	public interface IKafkaProducer
 	{
+		bool Produce(string broker, string topic, string message, string messageKey);
 		bool Produce(string broker, string topic, string message);
 	}
 }

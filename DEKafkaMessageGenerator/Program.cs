@@ -7,23 +7,83 @@ using System.Threading.Tasks;
 using System.IO;
 using DEKafkaMessageViewer.Common;
 using System.Threading;
+using System.Xml;
 
 namespace DEKafkaMessageGenerator
 {
 	class Program
 	{
-		static KafkaTargetConfiguration kafkaConfig = new KafkaTargetConfiguration();
+		static string SampleMessagePath = @"C:\Users\luoliurr\Source\Repos\DEMsgReviwer\DEKafkaMessageGenerator\Samples\Sample2\KfkMsgSample2.xml";
+		static string KafkaBootstrapper = @"dataexchange2:9092";
+		static string TopicName = "detest";
+		static bool IsConsume = true;
+
 		static void Main(string[] args)
 		{
-			//var filePath = @"C:\Users\luoliurr\Source\Repos\DEMsgReviwer\DEKafkaMessageGenerator\Samples\Sample2\KfkMsgSample2.xml";
-			//var message = File.ReadAllText(filePath);
+			Console.WriteLine($"Please specify Kafka broker boostrap server [{KafkaBootstrapper}]:");
+			var kfkServer = Console.ReadLine();
+			if (!string.IsNullOrEmpty(kfkServer))
+			{
+				KafkaBootstrapper = kfkServer;
+			}
 
-			//KafkaProducer producer = new KafkaProducer();
+			Console.WriteLine("Do you want to produce message or consume message from kafka broker (P/[C])?");
+			var oper = Console.ReadLine();
+			if (!string.IsNullOrEmpty(oper) && oper != "C")
+			{
+				IsConsume = false;
+			}
+
+			if (IsConsume)
+			{
+				StartConsume();
+			}
+			else
+			{
+				StartProduce();
+			}
+		}
+
+		static void StartProduce()
+		{
+			var messageContent = GetMessageContentFromFile();
+			var messageKey = GetMessageKey();
+
+			IKafkaProducer producer = new KafkaProducer();
+			producer.Produce(KafkaBootstrapper, TopicName, messageContent, messageKey);
+		}
+
+		static string GetMessageKey()
+		{
+			XmlDocument doc = new XmlDocument();
+			doc.Load(SampleMessagePath);
+
+			var rootElement = doc.DocumentElement;
+			if (rootElement.Name != "DEKafkaMessage")
+			{
+				throw new Exception($"Message in file {SampleMessagePath} is not valid.");
+			}
+
+			var targetElement = rootElement.ChildNodes[0].ChildNodes[0];
+			if (targetElement == null)
+			{
+				throw new Exception($"Message in file {SampleMessagePath} is not valid.");
+			}
+
+			return targetElement.InnerText;
+		}
+
+		static string GetMessageContentFromFile()
+		{
+			return File.ReadAllText(SampleMessagePath);
+		}
+
+		static void StartConsume()
+		{
 			KafkaConsumer consumer = new KafkaConsumer();
 			try
 			{
-				//producer.Produce("10.62.153.123:9092", "de3557", message);
-
+				Console.WriteLine("Started consuming, press CTRL + C to break.");
 				CancellationTokenSource cancelSource = new CancellationTokenSource();
 				Console.CancelKeyPress += (_, e) =>
 				{
@@ -31,78 +91,21 @@ namespace DEKafkaMessageGenerator
 					cancelSource.Cancel();
 				};
 				Guid groupId = Guid.NewGuid();
-				consumer.ConsumeAsync("10.62.153.123:9092", "de3557", groupId.ToString(), cancelSource, (result) =>
+				consumer.ConsumeAsync(KafkaBootstrapper, TopicName, groupId.ToString(), cancelSource, (result) =>
 				{
 					Console.WriteLine(result.Topic);
 					Console.WriteLine(result.Broker);
 					Console.WriteLine(result.Partition);
 					Console.WriteLine(result.Message);
 				});
-
-				Console.ReadLine();
-
-                Console.WriteLine("Done!");
+				Console.WriteLine("Done!");
 
 				Console.ReadLine();
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Console.WriteLine(ex.Message);
 			}
 		}
-
-		private static bool SendMessage(string message, string messageKey)
-		{
-			var kafkaMessenger = new KafkaMessenger(kafkaConfig);
-			var reply = kafkaMessenger.SendMessage(kafkaConfig.Topic, message, messageKey);
-			if (reply.Error.HasError)
-			{
-				Console.WriteLine(reply.Error.Reason);
-				return false;
-			}
-			return true;
-		}
-
-
-		private static void InitializeKafkaConfig()
-		{
-			kafkaConfig.Topic = "detest";
-			kafkaConfig.PayloadFormat = "xml";
-			kafkaConfig.TransmissionType = KafkaMessageTransmissionType.Batch;
-			kafkaConfig.BootstrapServers = "localhost:9092";
-			kafkaConfig.ClientId = "DEMsgReviewer";
-			kafkaConfig.Acks = 1;
-			kafkaConfig.TransformationID = Guid.NewGuid();
-		}
-	}
-
-	public sealed class KafkaTargetConfiguration
-	{
-		//[DataMember]
-		public string Topic { get; set; }
-
-		//[DataMember]
-		public KafkaMessageTransmissionType TransmissionType { get; set; }
-
-		//[DataMember]
-		public string PayloadFormat { get; set; }
-
-		//[DataMember]
-		public Dictionary<string, string> ProducerConfig { get; set; }
-
-		//[DataMember]
-		public string BootstrapServers { get; set; }
-
-		//[DataMember]
-		public string ClientId { get; set; }
-
-		//[DataMember]
-		public short Acks { get; set; }
-
-		//[DataMember]
-		public Dictionary<string, string> Files { get; set; }
-
-		//[DataMember]
-		public Guid TransformationID { get; set; }
 	}
 }

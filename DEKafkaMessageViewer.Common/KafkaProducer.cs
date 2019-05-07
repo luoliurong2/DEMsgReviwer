@@ -40,10 +40,6 @@ namespace DEKafkaMessageViewer.Common
 				using(var producer = new Producer<Null, string>(config, null, serializer))
 				{
 					var deliveryReport = producer.ProduceAsync(topic, null, message);
-					//if (deliveryReport.Error.Code == ErrorCode.NoError)
-					//{
-					//	Console.WriteLine("Producer：" + producer.Name + "\r\nTopic：" + topic + "\r\nPartition：" + deliveryReport.Partition + "\r\nOffset：" + deliveryReport.Offset + "\r\nMessage：" + deliveryReport.Value);
-					//}
 					deliveryReport.ContinueWith(task =>
 					{
 						if (task.Result.Error.Code == ErrorCode.NoError)
@@ -57,7 +53,7 @@ namespace DEKafkaMessageViewer.Common
 			}
 			else
 			{
-				using (var producer = new Producer<string, string>(config, serializer, serializer))
+				using (var producer = new Producer<string, string>(config, new StringSerializer(Encoding.UTF8), serializer))
 				{
 					var deliveryReport = producer.ProduceAsync(topic, messageKey, message);
 					deliveryReport.ContinueWith(task =>
@@ -65,9 +61,9 @@ namespace DEKafkaMessageViewer.Common
 						if (task.Result.Error.Code == ErrorCode.NoError)
 						{
 							result = true;
+							Console.WriteLine("Producer：" + producer.Name + "\r\nTopic：" + topic + "\r\nPartition：" + task.Result.Partition + "\r\nOffset：" + task.Result.Offset + "\r\nMessage：" + task.Result.Value);
 						}
 					});
-
 					producer.Flush(TimeSpan.FromSeconds(500));
 				}
 			}

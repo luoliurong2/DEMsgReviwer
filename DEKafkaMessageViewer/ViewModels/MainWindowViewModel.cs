@@ -11,6 +11,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Threading;
 
@@ -321,8 +322,16 @@ namespace DEKafkaMessageViewer.ViewModels
 			try
 			{
 				CurrentStatus = $"Verifying the API classes, just a moment...";
-				DEKafkaMessageParser.InitializeEntityClassesTypes(ApiClassesFilesPath);
-				CurrentStatus = $"Verification on the API classes has completed, all are good!";
+				Task.Factory.StartNew(() =>
+				{
+					DEKafkaMessageParser.InitializeEntityClassesTypes(ApiClassesFilesPath);
+				}).ContinueWith((result) =>
+				{
+					if (result.IsCompleted)
+					{
+						CurrentStatus = $"Verification on the API classes has completed, all are good!";
+					}
+				});
 			}
 			catch (Exception ex)
 			{
@@ -431,6 +440,12 @@ namespace DEKafkaMessageViewer.ViewModels
                 MessageBox.Show("Zookeeper hosts specified is invalid! \r\n Please see format indicated in wartermark text!", "Zookeeper host is invalid");
 				return;
 			}
+
+			if (TopicItems.Any())
+			{
+				TopicItems.Clear();
+			}
+
 			using (IZookeeperClient client = new ZookeeperClient(new ZookeeperClientOptions(ZookeeperHostServer)
 			{
 				BasePath = "/", //default value
@@ -590,7 +605,8 @@ namespace DEKafkaMessageViewer.ViewModels
                 config.Save(ConfigurationSaveMode.Modified);
                 ConfigurationManager.RefreshSection("appSettings");
                 CurrentStatus = "Settings have been saved successfully!";
-            }
+				IsFlyoutOpen = false;
+			}
             catch (Exception ex)
             {
                 MessageBox.Show($"Errors occur when saving settings! Error: {ex.Message}");
